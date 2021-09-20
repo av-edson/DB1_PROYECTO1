@@ -15,12 +15,12 @@ drop SEQUENCE pelicula_id_pelicula_seq;
 drop SEQUENCE renta_id_renta_seq;
 drop SEQUENCE pais_id_pais_seq;
 
-drop table pais;
 drop table renta;
 DROP TABLE EMPLEADO;
 drop table cliente;
 drop table direccion;
 drop table ciudad;
+drop table pais;
 drop table categoria_entrega;
 drop table actor_entrega;
 drop table pelicula;

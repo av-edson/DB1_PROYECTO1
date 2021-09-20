@@ -1,46 +1,53 @@
+-- PAIS
+insert into pais(nombre)
+SELECT DISTINCT PAIS_CLIENTE from temporal where PAIS_CLIENTE!='-';
+-- TIENDA
 insert into tienda (direccion,nombre)
 select DISTINCT DIRECCION_TIENDA ,NOMBRE_TIENDA from temporal 
 where direccion_tienda !='-' and nombre_tienda != '-';
-
+-- CATEGORIA
 insert into CATEGORIA (DESCRIPCION)
 select distinct CATEGORIA_PELICULA from temporal where CATEGORIA_PELICULA!='-';
-
+-- USUARIO EMPLEADO
 INSERT INTO usuario_empleado (usuario,contrasena)
 select DISTINCT T.USUARIO_EMPLEADO,T.CONTRASENA_EMPLEADO FROM TEMPORAL T where t.usuario_empleado !='-';
-
+-- CLASIFICACION
 insert into CLASIFICACION (nombre)
 select DISTINCT T.CLASIFICACION from TEMPORAL T where t.clasificacion!='-';
-
+-- ENTREGA
 insert into entrega
 (titulo,descripcion,duracion,lanzamiento,clasificacion_id_clasificacion)
 SELECT DISTINCT T.NOMBRE_PELICULA,T.DESCRIPCION_PELICULA,(cast (t.DURACION as iNTEGER)) as duracion,
 (cast (t.ANO_LANZAMIENTO as iNTEGER)) as lanzamiento,
 (select id_clasificacion from clasificacion where nombre=t.CLASIFICACION) as cla
 from temporal T where t.duracion!='-' and t.ANO_LANZAMIENTO!='-';
-
+-- ACTOR
 INSERT INTO actor (nombre,apellido)
 SELECT DISTINCT SUBSTR(T.ACTOR_PELICULA, 1, INSTR(T.ACTOR_PELICULA, ' ')-1) AS nombre,
        SUBSTR(T.ACTOR_PELICULA, INSTR(T.ACTOR_PELICULA, ' ')+1) AS apellido
 FROM temporal T where SUBSTR(T.ACTOR_PELICULA, 1, INSTR(T.ACTOR_PELICULA, ' ')-1) is not null;
-
-INSERT INTO CIUDAD (CIUDAD,PAIS)
-SELECT DISTINCT T.CIUDAD_CLIENTE,T.PAIS_CLIENTE FROM TEMPORAL T where t.CIUDAD_CLIENTE!='-'
+-- CIUDAD
+INSERT INTO CIUDAD (CIUDAD,pais_id_pais)
+SELECT DISTINCT T.CIUDAD_CLIENTE,
+(select id_pais from pais where nombre=t.PAIS_CLIENTE)FROM TEMPORAL T where t.CIUDAD_CLIENTE!='-' and t.pais_cliente!='-'
 UNION
-SELECT DISTINCT t.CIUDAD_TIENDA,T.PAIS_TIENDA FROM TEMPORAL T where t.ciudad_tienda!='-';
-
+SELECT DISTINCT t.CIUDAD_TIENDA,(select id_pais from pais where nombre=t.PAIS_TIENDA)
+FROM TEMPORAL T where t.ciudad_tienda!='-';
+-- DIRECCION
 INSERT INTO DIRECCION(DIRECCION,CIUDAD_ID_CIUDAD,CODIGO_POSTAL)
 SELECT DISTINCT T.DIRECCION_CLIENTE,
-(SELECT C.ID_CIUDAD FROM CIUDAD C WHERE C.PAIS=T.PAIS_CLIENTE AND C.CIUDAD=T.CIUDAD_CLIENTE) AS IDE,T.CODIGO_POSTAL_CLIENTE
+(SELECT C.ID_CIUDAD FROM CIUDAD C WHERE c.pais_id_pais=(select id_pais from pais where nombre=T.PAIS_CLIENTE)
+AND C.CIUDAD=T.CIUDAD_CLIENTE) AS IDE,T.CODIGO_POSTAL_CLIENTE
 FROM TEMPORAL T where t.direccion_cliente!='-';
-
+-- CLIENTE
 insert into cliente (correo,estado,nombre,apellido,fecha_registro,direccion_id_direccion,tienda_id_tienda)
 select  DISTINCT t.correo_cliente,t.cliente_activo,SUBSTR(T.nombre_cliente, 1, INSTR(T.nombre_cliente, ' ')-1) AS nombre,
        SUBSTR(T.nombre_cliente, INSTR(T.nombre_cliente, ' ')+1) AS apellido,TO_DATE(t.fecha_creacion,'DD-MM-YY') as fecha,
-       (SELECT C.ID_CIUDAD FROM CIUDAD C WHERE C.PAIS=T.PAIS_CLIENTE AND C.CIUDAD=T.CIUDAD_CLIENTE) AS IDE_ciudad,
+       (SELECT C.ID_CIUDAD FROM CIUDAD C WHERE c.pais_id_pais=(SELECT ID_PAIS FROM PAIS WHERE NOMBRE=T.PAIS_CLIENTE) AND C.CIUDAD=T.CIUDAD_CLIENTE) AS IDE_ciudad,
        (select id_tienda from tienda where nombre = t.TIENDA_PREFERIDA) as tienda
 from temporal T
 where t.nombre_cliente !='-';
-
+-- EMPLEADO
 INSERT INTO EMPLEADO
 (nombre,apellido,correo,direccion_id_direccion,activo,usuario_empleado_id_usuario,tienda_id_tienda,tipo_empleado)
 SELECT DISTINCT SUBSTR(T.NOMBRE_EMPLEADO, 1, INSTR(T.NOMBRE_EMPLEADO, ' ')-1) AS nombre,

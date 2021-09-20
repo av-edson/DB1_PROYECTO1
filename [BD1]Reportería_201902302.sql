@@ -55,22 +55,45 @@ select a.nombre||' '||a.apellido actor,c.nombre||' '||c.apellido cliente
 from actor a, cliente c
 where a.nombre=c.nombre and c.nombre=(select nombre from actor where id_actor=8) and a.id_actor!=8;
 -- CONSULTA 11
+SELECT P.NOMBRE,C.NOMBRE,
+((select count(cliente_id_cliente) from renta where cliente_id_cliente=c.id_cliente)/
+(select count(id_renta) from renta where cliente_id_cliente in  (select id_cliente from cliente where direccion_id_direccion 
+in (select id_direccion from direccion where ciudad_id_ciudad in 
+(select id_ciudad from ciudad where pais_id_pais=1)))  )* 100) porcentaje
+from pais p, cliente c where 
+c.direccion_id_direccion in (select id_direccion from direccion where ciudad_id_ciudad in 
+(select id_ciudad from ciudad where pais_id_pais=p.id_pais)) order by porcentaje desc;
+-- CONSULTA 12
+-- CONSULTA 13
+SELECT P.NOMBRE,C.NOMBRE,
+(select count(cliente_id_cliente) from renta where cliente_id_cliente=c.id_cliente) rentadas
+from pais p, cliente c where 
+c.direccion_id_direccion in (select id_direccion from direccion where ciudad_id_ciudad in 
+(select id_ciudad from ciudad where pais_id_pais=p.id_pais)) order by rentadas desc;
+-- CONSULTA 15
+select p.nombre,ciu.ciudad,trunc(
+(select count(id_renta) from renta where cliente_id_cliente in (select id_cliente from cliente where direccion_id_direccion 
+in (select id_direccion from direccion where ciudad_id_ciudad in(select id_ciudad from ciudad where pais_id_pais=p.id_pais))))/
+(select count(id_ciudad) from ciudad where pais_id_pais=p.id_pais),4) promedio
+from pais p, ciudad ciu 
+where p.id_pais=ciu.pais_id_pais order by p.nombre;
+-- CONSULTA 16
+select p.nombre,((
+select count(id_renta) from renta where 
+-- cliente del pais
+cliente_id_cliente in (select id_cliente from cliente where direccion_id_direccion 
+in (select id_direccion from direccion where ciudad_id_ciudad in(select id_ciudad from ciudad where pais_id_pais=p.id_pais)))
+-- pelicula con categoria
+and pelicula_id_pelicula in (select id_pelicula from pelicula where entrega_id_entrega
+in (select entrega_id_entrega from categoria_entrega where categoria_id_categoria=(select id_categoria from categoria where descripcion='Sports')))
+)/(select count(id_renta) from renta where cliente_id_cliente in (select id_cliente from cliente where direccion_id_direccion 
+in (select id_direccion from direccion where ciudad_id_ciudad in(select id_ciudad from ciudad where pais_id_pais=p.id_pais))))*100 ) porcentaje from pais p;
+-- CONSULTA 20
+select c.ciudad,l.lenguaje,100
+from pelicula p, lenguaje l,ciudad c
+where p.lenguaje_id_lenguaje=l.id_lenguaje and
+(select max(extract(year from fecha_renta)) from renta where pelicula_id_pelicula=p.id_pelicula)=2005 
+and 7 in (select extract(month from fecha_renta) from renta where pelicula_id_pelicula=p.id_pelicula) 
+group by c.ciudad,l.lenguaje;
 
-select ci.pais,c.nombre,c.id_cliente,
-(select count(cliente_id_cliente) from renta where cliente_id_cliente=c.id_cliente) norentas
-from cliente c,direccion d, ciudad ci
-where c.direccion_id_direccion=d.id_direccion and d.ciudad_id_ciudad=ci.id_ciudad;
 
-
-select c.id_cliente,
-(select count(cliente_id_cliente) from renta where cliente_id_cliente=c.id_cliente)
-from cliente c where
-c.id_cliente=;
-
-select (
-select max(count(cliente_id_cliente)) from renta where cliente_id_cliente=1)
-from cliente c;
-
-select max(
-select count(cliente_id_cliente) from renta where cliente_id_cliente=c.id_cliente) 
-from cliente c;
