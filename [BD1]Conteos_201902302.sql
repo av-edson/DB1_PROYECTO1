@@ -13,3 +13,4 @@ select count(*) from categoria_entrega;
 select count(*) from renta;
 select count(*) from tienda;
 select count(*) from usuario_empleado;
+select count(8) from pais;
